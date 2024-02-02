@@ -1,7 +1,5 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 
 class Survey(models.Model):
@@ -142,11 +140,3 @@ class UserAnswer(models.Model):
 
     def __str__(self):
         return f'{self.user} - {self.answer}'
-
-
-@receiver(post_save, sender=UserAnswer)
-def update_last_answer(sender, instance, **kwargs):
-    user_survey = UserSurvey.objects.get(
-        user=instance.user, survey=instance.answer.question.survey)
-    user_survey.last_answer = instance.answer
-    user_survey.save()

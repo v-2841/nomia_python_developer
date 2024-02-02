@@ -1,12 +1,18 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
-from survey.models import Answer, Question, Survey, UserAnswer, UserSurvey
+from surveys.models import Answer, Question, Survey, UserAnswer, UserSurvey
 
 
 @admin.register(Survey)
 class SurveyAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
+
+    def get_form(self, request, obj, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['first_question'].queryset = Question.objects.filter(
+            survey=obj)
+        return form
 
 
 class AnswerInline(admin.TabularInline):
@@ -18,9 +24,7 @@ class AnswerInline(admin.TabularInline):
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('text', 'survey')
-    inlines = [
-        AnswerInline,
-    ]
+    inlines = [AnswerInline]
 
 
 @admin.register(Answer)
