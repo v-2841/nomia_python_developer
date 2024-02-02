@@ -1,13 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
-from survey.models import Answer, Question, Survey, UserAnswer
+from survey.models import Answer, Question, Survey, UserAnswer, UserSurvey
 
 
 @admin.register(Survey)
 class SurveyAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    readonly_fields = ('respondents',)
+    list_display = ('name', 'description')
 
 
 class AnswerInline(admin.TabularInline):
@@ -18,7 +17,7 @@ class AnswerInline(admin.TabularInline):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ('text', 'survey', 'is_first')
+    list_display = ('text', 'survey')
     inlines = [
         AnswerInline,
     ]
@@ -32,6 +31,11 @@ class AnswerAdmin(admin.ModelAdmin):
 @admin.register(UserAnswer)
 class UserAnswerAdmin(admin.ModelAdmin):
     list_display = ('user', 'answer')
+
+
+@admin.register(UserSurvey)
+class UserSurveyAdmin(admin.ModelAdmin):
+    list_display = ('user', 'survey')
 
 
 admin.site.unregister(Group)

@@ -1,5 +1,7 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Survey(models.Model):
@@ -13,9 +15,17 @@ class Survey(models.Model):
         null=True,
         verbose_name='Описание опроса',
     )
-    respondents = models.PositiveSmallIntegerField(
-        default=0,
-        verbose_name='Количество респондентов',
+    first_question = models.ForeignKey(
+        'Question',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name='Первый вопрос',
+        related_name='first_surveys_questions',
+    )
+    respondents = models.ManyToManyField(
+        User,
+        through='UserSurvey',
     )
 
     class Meta:
@@ -36,10 +46,6 @@ class Question(models.Model):
         on_delete=models.CASCADE,
         related_name='questions',
         verbose_name='Опрос',
-    )
-    is_first = models.BooleanField(
-        default=False,
-        verbose_name='Первый вопрос',
     )
 
     class Meta:
@@ -74,7 +80,41 @@ class Answer(models.Model):
         verbose_name_plural = 'Ответы'
 
     def __str__(self):
-        return self.text
+        return f'{self.question.text} - {self.text}'
+
+
+class UserSurvey(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='surveys',
+        verbose_name='Пользователь',
+    )
+    survey = models.ForeignKey(
+        Survey,
+        on_delete=models.CASCADE,
+        related_name='users',
+        verbose_name='Опрос',
+    )
+    last_answer = models.ForeignKey(
+        Answer,
+        default=None,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name='Последний ответ',
+    )
+
+    class Meta:
+        verbose_name = 'Опрос пользователя'
+        verbose_name_plural = 'Опросы пользователей'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'survey'],
+                                    name='unique_user_survey'),
+        ]
+
+    def __str__(self):
+        return f'{self.user} - {self.survey}'
 
 
 class UserAnswer(models.Model):
@@ -95,6 +135,18 @@ class UserAnswer(models.Model):
     class Meta:
         verbose_name = 'Ответ пользователя'
         verbose_name_plural = 'Ответы пользователей'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'answer'],
+                                    name='unique_user_answer'),
+        ]
 
     def __str__(self):
-        return self.user
+        return f'{self.user} - {self.answer}'
+
+
+@receiver(post_save, sender=UserAnswer)
+def update_last_answer(sender, instance, **kwargs):
+    user_survey = UserSurvey.objects.get(
+        user=instance.user, survey=instance.answer.question.survey)
+    user_survey.last_answer = instance.answer
+    user_survey.save()
