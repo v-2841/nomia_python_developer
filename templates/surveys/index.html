@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}
+  Главная страница
+{% endblock title %}
+{% block content %}
+  <h1>Главная страница</h1>
+  <ul>
+    {% for survey in surveys %}
+      <li>
+        <p>
+          <a href="{% url 'surveys:survey' survey.id %}" style="display: block">{{ survey.name }}</a>
+        </p>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock content %}

@@ -1,0 +1,10 @@
+<a href="{% url 'surveys:index' %}"><button>Главная</button></a>
+{% if request.user.is_authenticated %}
+  <form method="post" action="{% url 'users:logout' %}" style="display: inline-block;">
+    {% csrf_token %}
+    <button type="submit">Выйти</button>
+  </form>
+{% else %}
+  <a href="{% url 'users:login' %}"><button>Вход</button></a>
+  <a href="{% url 'users:signup' %}"><button>Регистрация</button></a>
+{% endif %}

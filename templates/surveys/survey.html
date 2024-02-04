@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}
+  {{ survey.name }}
+{% endblock title %}
+{% block content %}
+  <h1>{{ survey.name }}</h1>
+  <p>{{ survey.description }}</p>
+  {% if request.method == 'GET' %}
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit">
+        {% if is_started %}
+          Продолжить
+        {% else %}
+          Начать
+        {% endif %}
+      </button>
+    </form>
+  {% else %}
+    <h3>{{ question.text }}</h3>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Отправить</button>
+    </form>
+  {% endif %}
+{% endblock content %}

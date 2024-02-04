@@ -123,6 +123,11 @@ class UserAnswer(models.Model):
         related_name='answers',
         verbose_name='Пользователь',
     )
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        verbose_name='Вопрос',
+    )
     answer = models.ForeignKey(
         Answer,
         on_delete=models.CASCADE,
@@ -134,9 +139,9 @@ class UserAnswer(models.Model):
         verbose_name = 'Ответ пользователя'
         verbose_name_plural = 'Ответы пользователей'
         constraints = [
-            models.UniqueConstraint(fields=['user', 'answer'],
-                                    name='unique_user_answer'),
+            models.UniqueConstraint(fields=['user', 'question'],
+                                    name='unique_user_question'),
         ]
 
     def __str__(self):
-        return f'{self.user} - {self.answer}'
+        return f'{self.user} - {self.question} - {self.answer}'
