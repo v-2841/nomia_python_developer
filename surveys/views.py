@@ -1,10 +1,10 @@
 import sqlite3
 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 
 from surveys.forms import AnswerForm
-from surveys.models import Survey, UserSurvey, UserAnswer
+from surveys.models import Survey, UserAnswer, UserSurvey
 
 
 def index(request):
@@ -16,7 +16,6 @@ def index(request):
 def survey(request, pk):
     survey = Survey.objects.get(pk=pk)
     if request.method == 'POST':
-        question = None
         user_survey, _ = UserSurvey.objects.get_or_create(
             user=request.user,
             survey=survey,
