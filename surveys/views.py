@@ -116,10 +116,10 @@ def survey_results(request, pk):
             questions_answers[answer['question_id']] += 1
     question_index_number = questions_answers.copy()
     for question_answers in questions_answers:
-        questions_answers[question_answers] = \
-            (f'{questions_answers[question_answers]} / '
-             + f'{round(questions_answers[
-                 question_answers] * 100 / respondents_count)} %')
+        questions_answers[question_answers] = (
+            f'{questions_answers[question_answers]} / '
+            + f'{round(questions_answers[
+                question_answers] * 100 / respondents_count)} %')
     for question in questions:
         question['answers_count'] = questions_answers[question['id']]
 
@@ -160,9 +160,9 @@ def survey_results(request, pk):
     for values in answers.values():
         answers_counter = sum([answer['counter'] for answer in values])
         for answer in values:
-            answer['counter'] = \
-                (f'{answer["counter"]} / '
-                 + f'{round(answer["counter"] * 100 / answers_counter)} %')
+            answer['counter'] = (
+                f'{answer["counter"]} / '
+                + f'{round(answer["counter"] * 100 / answers_counter)} %')
     for question in questions:
         question['answers'] = answers[question['id']]
 
