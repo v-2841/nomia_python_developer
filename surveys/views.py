@@ -120,7 +120,10 @@ def survey_results(request, pk):
             f'{questions_answers[answer]} / '
             + f'{round(questions_answers[answer] * 100/ respondents_count)} %')
     for question in questions:
-        question['answers_count'] = questions_answers[question['id']]
+        try:
+            question['answers_count'] = questions_answers[question['id']]
+        except KeyError:
+            question['answers_count'] = 0
 
     # Порядковый номер вопроса по количеству ответивших
     counters = []
@@ -130,7 +133,10 @@ def survey_results(request, pk):
     for id, counter in question_index_number.items():
         question_index_number[id] = counters.index(counter) + 1
     for question in questions:
-        question['index_number'] = question_index_number[question['id']]
+        try:
+            question['index_number'] = question_index_number[question['id']]
+        except KeyError:
+            question['index_number'] = 999
 
     # Количество во ответивших на каждый из вариантов ответа
     # и их доля от общего количетва ответивших
@@ -158,10 +164,11 @@ def survey_results(request, pk):
                 answer['counter'] += 1
     for values in answers.values():
         answers_counter = sum([answer['counter'] for answer in values])
-        for answer in values:
-            answer['counter'] = (
-                f'{answer["counter"]} / '
-                + f'{round(answer["counter"] * 100 / answers_counter)} %')
+        if answers_counter != 0:
+            for answer in values:
+                answer['counter'] = (
+                    f'{answer["counter"]} / '
+                    + f'{round(answer["counter"] * 100 / answers_counter)} %')
     for question in questions:
         question['answers'] = answers[question['id']]
 
