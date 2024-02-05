@@ -118,8 +118,7 @@ def survey_results(request, pk):
     for question_answers in questions_answers:
         questions_answers[question_answers] = (
             f'{questions_answers[question_answers]} / '
-            + f'{round(questions_answers[
-                question_answers] * 100 / respondents_count)} %')
+            + f'{round(questions_answers[question_answers] * 100/ respondents_count)} %')
     for question in questions:
         question['answers_count'] = questions_answers[question['id']]
 
