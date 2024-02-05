@@ -136,7 +136,8 @@ def survey_results(request, pk):
         try:
             question['index_number'] = question_index_number[question['id']]
         except KeyError:
-            question['index_number'] = 999
+            question['index_number'] = question_index_number[
+                list(question_index_number)[-1]] + 1
 
     # Количество во ответивших на каждый из вариантов ответа
     # и их доля от общего количетва ответивших
