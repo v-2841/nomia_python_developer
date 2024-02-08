@@ -1,5 +1,6 @@
 import sqlite3
 
+from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
@@ -63,6 +64,7 @@ def survey(request, pk):
 
 
 @login_required
+@transaction.atomic
 def survey_results(request, pk):
     # Проверяем, что опрос завершен
     try:
