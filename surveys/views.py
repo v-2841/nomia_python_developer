@@ -64,7 +64,6 @@ def survey(request, pk):
 
 
 @login_required
-@transaction.atomic
 def survey_results(request, pk):
     # Проверяем, что опрос завершен
     try:
@@ -82,34 +81,60 @@ def survey_results(request, pk):
     connection = sqlite3.connect('db.sqlite3')
     cursor = connection.cursor()
 
-    # Общее количество участников опроса
-    cursor.execute("""
-        SELECT COUNT(*) FROM surveys_usersurvey
-        WHERE surveys_usersurvey.survey_id = ?;
-    """, (pk,))
-    respondents_count = cursor.fetchone()[0]
+    # Делаем запросы
+    with transaction.atomic():
+        # Общее количество участников опроса
+        cursor.execute("""
+            SELECT COUNT(*) FROM surveys_usersurvey
+            WHERE surveys_usersurvey.survey_id = ?;
+            """, (pk,))
+        respondents_count = cursor.fetchone()[0]
+
+        # Вопросы в опросе
+        cursor.execute("""
+            SELECT id, text FROM surveys_question WHERE survey_id = ?;
+        """, (pk,))
+        questions = []
+        for row in cursor.fetchall():
+            questions.append({
+                'id': row[0],
+                'text': row[1],
+            })
+
+        # Ответы пользователей
+        cursor.execute("""
+            SELECT question_id, answer_id
+            FROM surveys_useranswer WHERE question_id IN ({});
+        """.format(', '.join([str(row['id']) for row in questions])))
+        users_answers = []
+        for row in cursor.fetchall():
+            users_answers.append({
+                'question_id': row[0],
+                'answer_id': row[1],
+            })
+
+        # Ответы
+        cursor.execute("""
+            SELECT id, question_id, text
+            FROM surveys_answer WHERE question_id IN ({});
+        """.format(', '.join([str(row['id']) for row in questions])))
+        answers = {}
+        for row in cursor.fetchall():
+            if row[1] not in answers:
+                answers[row[1]] = [{
+                    'id': row[0],
+                    'text': row[2],
+                    'counter': 0
+                }]
+            else:
+                answers[row[1]].append({
+                    'id': row[0],
+                    'text': row[2],
+                    'counter': 0
+                })
 
     # На каждый вопрос
     # Количество ответивших и их доля от общего количества участников опроса
-    cursor.execute("""
-        SELECT id, text FROM surveys_question WHERE survey_id = ?;
-    """, (pk,))
-    questions = []
-    for row in cursor.fetchall():
-        questions.append({
-            'id': row[0],
-            'text': row[1],
-        })
-    cursor.execute("""
-        SELECT question_id, answer_id
-        FROM surveys_useranswer WHERE question_id IN ({});
-    """.format(', '.join([str(row['id']) for row in questions])))
-    users_answers = []
-    for row in cursor.fetchall():
-        users_answers.append({
-            'question_id': row[0],
-            'answer_id': row[1],
-        })
     questions_answers = {}
     for answer in users_answers:
         if answer['question_id'] not in questions_answers:
@@ -143,24 +168,6 @@ def survey_results(request, pk):
 
     # Количество во ответивших на каждый из вариантов ответа
     # и их доля от общего количетва ответивших
-    cursor.execute("""
-        SELECT id, question_id, text
-        FROM surveys_answer WHERE question_id IN ({});
-    """.format(', '.join([str(row['id']) for row in questions])))
-    answers = {}
-    for row in cursor.fetchall():
-        if row[1] not in answers:
-            answers[row[1]] = [{
-                'id': row[0],
-                'text': row[2],
-                'counter': 0
-            }]
-        else:
-            answers[row[1]].append({
-                'id': row[0],
-                'text': row[2],
-                'counter': 0
-            })
     for user_answer in users_answers:
         for answer in answers[user_answer['question_id']]:
             if user_answer['answer_id'] == answer['id']:
